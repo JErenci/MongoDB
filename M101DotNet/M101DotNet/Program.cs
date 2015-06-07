@@ -156,54 +156,88 @@ namespace M101DotNet
 
 		//// 4- *** .NET Driver *** //
 
+		//static async Task MainAsync( string[] args )
+		//{
+		//	var client = new MongoClient();
+		//	var db = client.GetDatabase( "test" );
 
+		//	var col = db.GetCollection<BsonDocument>( "people" );
+
+		//	var doc = new BsonDocument
+		//	{
+		//		{ "Name", "Smith" },
+		//		{ "Age", 30 },
+		//		{ "Profession", "Hacker"}
+		//	};
+
+		//	//// 4.a) Insert one document in DB collection
+		//	//await col.InsertOneAsync( doc );
+
+		//	//// 4.b) Insert Many documents in a DB collection
+		//	//var doc2 = new BsonDocument
+		//	//{
+		//	//	{ "SomethingElse", true }
+		//	//};
+
+		//	//await col.InsertManyAsync( new[] { doc, doc2 } );
+
+		//	//// 4.c) Add an element of a type given by a class
+		//	var doc3 = new Person
+		//	{
+		//		Name = "Jack",
+		//		Age = 24,
+		//		Profession = "Hacker"
+		//	};
+
+		//	// Note that the collection has to be changed to have elements of type Person, 
+		//	// so that the document can be added.
+		//	var colPeople = db.GetCollection<Person>( "people" );
+
+		//	Console.WriteLine( doc3.Id );
+
+		//	await colPeople.InsertOneAsync( doc3 );
+
+		//	// We mutate the object identifier
+
+		//	Console.WriteLine( doc3.Id );
+
+		//	// Adding the same document twice will generate a Mongo key exception (duplicate key)
+		//	//await colPeople.InsertOneAsync( doc3 );
+		//}
+
+
+		//// 5- *** .NET Driver, Find() *** //
+
+		// Retrieves the Documents from a MongoDB collection
 		static async Task MainAsync( string[] args )
 		{
 			var client = new MongoClient();
 			var db = client.GetDatabase( "test" );
-
 			var col = db.GetCollection<BsonDocument>( "people" );
 
-			var doc = new BsonDocument
-			{
-				{ "Name", "Smith" },
-				{ "Age", 30 },
-				{ "Profession", "Hacker"}
-			};
-
-			//// 4.a) Insert one document in DB collection
-			//await col.InsertOneAsync( doc );
-
-			//// 4.b) Insert Many documents in a DB collection
-			//var doc2 = new BsonDocument
+			// 5.a) CURSORS: Most difficult, but flexible way
+			//using ( var cursor = await col.Find( new BsonDocument() ).ToCursorAsync() )
 			//{
-			//	{ "SomethingElse", true }
-			//};
+			//	while ( await cursor.MoveNextAsync() )
+			//	{
+			//		foreach ( var doc in cursor.Current )
+			//		{
+			//			Console.WriteLine( doc );
+			//		}
+			//	}
+			//}
 
-			//await col.InsertManyAsync( new[] { doc, doc2 } );
+			// 5.b) Bring documents into memory first: Cleaner, but not reliable if DB Collection has changed.
+			//var list = await col.Find( new BsonDocument() ).ToListAsync();
 
-			//// 4.c) Add an element of a type given by a class
-			var doc3 = new Person
-			{
-				Name = "Jack",
-				Age = 24,
-				Profession = "Hacker"
-			};
+			//foreach ( var doc in list )
+			//{
+			//	Console.WriteLine( doc );
+			//}
 
-			// Note that the collection has to be changed to have elements of type Person, 
-			// so that the document can be added.
-			var colPeople = db.GetCollection<Person>( "people" );
-
-			Console.WriteLine( doc3.Id );
-
-			await colPeople.InsertOneAsync( doc3 );
-
-			// We mutate the object identifier
-
-			Console.WriteLine( doc3.Id );
-
-			// Adding the same document twice will generate a Mongo key exception (duplicate key)
-			//await colPeople.InsertOneAsync( doc3 );
+			// 5.c) ForEachAsync (4 overloads w/task: BsonDoc, Bsondoc+index, Bsondoc+task, Bsondoc+index+Task)
+			await col.Find( new BsonDocument() ).
+				ForEachAsync( doc => Console.WriteLine( doc ) );
 		}
 	}
 
