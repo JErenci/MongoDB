@@ -17,6 +17,30 @@ namespace M101DotNet
 
 		public string Profession { get; set; }
 
+		public override string ToString()
+		{
+ 			string objectString = "";
+
+			objectString += "{ ";
+			objectString += "Id: " + Id;
+			objectString += " }\t";
+
+			objectString += "{ ";
+			objectString += "Name: " + Name;
+			objectString += " }\t";
+
+			objectString += "{ ";
+			objectString += "Age: " + Age;
+			objectString += " }\t";
+
+			objectString += "{ ";
+			objectString += "Profession: " + Profession;
+			objectString += " }\t";
+
+			return objectString;
+
+		}
+
 		//public List<string> Colors { get; set; }
 
 		//public List<Pet> Pets { get; set; }

@@ -208,6 +208,43 @@ namespace M101DotNet
 
 		//// 5- *** .NET Driver, Find() *** //
 
+		//// Retrieves the Documents from a MongoDB collection
+		//static async Task MainAsync( string[] args )
+		//{
+		//	var client = new MongoClient();
+		//	var db = client.GetDatabase( "test" );
+		//	var col = db.GetCollection<BsonDocument>( "people" );
+
+		//	// 5.a) CURSORS: Most difficult, but flexible way
+		//	//using ( var cursor = await col.Find( new BsonDocument() ).ToCursorAsync() )
+		//	//{
+		//	//	while ( await cursor.MoveNextAsync() )
+		//	//	{
+		//	//		foreach ( var doc in cursor.Current )
+		//	//		{
+		//	//			Console.WriteLine( doc );
+		//	//		}
+		//	//	}
+		//	//}
+
+		//	// 5.b) Bring documents into memory first: Cleaner, but not reliable if DB Collection has changed.
+		//	//var list = await col.Find( new BsonDocument() ).ToListAsync();
+
+		//	//foreach ( var doc in list )
+		//	//{
+		//	//	Console.WriteLine( doc );
+		//	//}
+
+		//	// 5.c) ForEachAsync (4 overloads w/task: BsonDoc, Bsondoc+index, Bsondoc+task, Bsondoc+index+Task)
+		//	await col.Find( new BsonDocument() ).
+		//		ForEachAsync( doc => Console.WriteLine( doc ) );
+		//}
+
+
+
+
+		//// 6- *** .NET Driver, Find with filters *** //
+
 		// Retrieves the Documents from a MongoDB collection
 		static async Task MainAsync( string[] args )
 		{
@@ -215,29 +252,60 @@ namespace M101DotNet
 			var db = client.GetDatabase( "test" );
 			var col = db.GetCollection<BsonDocument>( "people" );
 
-			// 5.a) CURSORS: Most difficult, but flexible way
-			//using ( var cursor = await col.Find( new BsonDocument() ).ToCursorAsync() )
-			//{
-			//	while ( await cursor.MoveNextAsync() )
-			//	{
-			//		foreach ( var doc in cursor.Current )
-			//		{
-			//			Console.WriteLine( doc );
-			//		}
-			//	}
-			//}
+			//// 6.a) The filter is a BsonDocument
+			var filter1 = new BsonDocument( "Name" , "Smith");
+			// Find() is expecting a BsonDefinition as an argument
+			// Although filter is a BsonDocument, there are some implicit conversions between BsonDocuments and filterDefinitions
+			
+			//// 6.b) The filter can be a more complex BsonDocument
+			var filter2 = new BsonDocument( "$and", new BsonArray
+				{
+					new BsonDocument("Age", new BsonDocument("$lt", 31)),
+					new BsonDocument("Name", "Smith")
+				} );
+			
+			// 6.c) The filter can be used (optimal situation) with the filter builder 
+			var builder = new FilterDefinitionBuilder<BsonDocument>();
+			var simpleBuilder = Builders<BsonDocument>.Filter;
 
-			// 5.b) Bring documents into memory first: Cleaner, but not reliable if DB Collection has changed.
-			//var list = await col.Find( new BsonDocument() ).ToListAsync();
+			var filter3 = simpleBuilder.Lt( "Age", 31 );
+			var filter4 = simpleBuilder.And( simpleBuilder.Lt( "Age", 31 ), simpleBuilder.Eq( "Name", "Jack" ) );
+			// using operators overloaded in Builders (|, &, !)
+			var filter5 = simpleBuilder.Lt( "Age", 31 ) | simpleBuilder.Eq( "Name", "Jones" );
+
+
+			//var list = await col.Find( filter5 ).ToListAsync();
 
 			//foreach ( var doc in list )
 			//{
 			//	Console.WriteLine( doc );
 			//}
 
-			// 5.c) ForEachAsync (4 overloads w/task: BsonDoc, Bsondoc+index, Bsondoc+task, Bsondoc+index+Task)
-			await col.Find( new BsonDocument() ).
-				ForEachAsync( doc => Console.WriteLine( doc ) );
+
+
+			// 6.d) Using Class Types instead of BsonDocuments, where it is much easier to use expression trees
+			var personCol = db.GetCollection<Person>( "people" );
+			var builder2 = new FilterDefinitionBuilder<Person>();
+			var personBuilder = Builders<Person>.Filter;
+
+			var filter6 = personBuilder.Lt( x => x.Age, 31 ) | personBuilder.Eq( x => x.Name, "Jones" );
+
+
+			var personList = await personCol.Find( filter6 ).ToListAsync();
+
+			//foreach ( var doc in personList )
+			//{
+			//	Console.WriteLine( doc );
+			//}
+
+			// 6.e) Using Strongly Typed objects, filters are unnecessary, expression trees can be used in-line with filter info
+			personList = await personCol.Find( x => x.Age < 30 && x.Name != "Jones" ).ToListAsync();
+
+			foreach ( var doc in personList )
+			{
+				Console.WriteLine( doc );
+			}
+
 		}
 	}
 
