@@ -245,122 +245,183 @@ namespace M101DotNet
 
 		//// 6- *** .NET Driver, Find with filters *** //
 
-		//// Retrieves the Documents from a MongoDB collection
-		//static async Task MainAsync( string[] args )
-		//{
-		//	var client = new MongoClient();
-		//	var db = client.GetDatabase( "test" );
-		//	var col = db.GetCollection<BsonDocument>( "people" );
-
-		//	//// 6.a) The filter is a BsonDocument
-		//	var filter1 = new BsonDocument( "Name" , "Smith");
-		//	// Find() is expecting a BsonDefinition as an argument
-		//	// Although filter is a BsonDocument, there are some implicit conversions between BsonDocuments and filterDefinitions
-			
-		//	//// 6.b) The filter can be a more complex BsonDocument
-		//	var filter2 = new BsonDocument( "$and", new BsonArray
-		//		{
-		//			new BsonDocument("Age", new BsonDocument("$lt", 31)),
-		//			new BsonDocument("Name", "Smith")
-		//		} );
-			
-		//	// 6.c) The filter can be used (optimal situation) with the filter builder 
-		//	var builder = new FilterDefinitionBuilder<BsonDocument>();
-		//	var simpleBuilder = Builders<BsonDocument>.Filter;
-
-		//	var filter3 = simpleBuilder.Lt( "Age", 31 );
-		//	var filter4 = simpleBuilder.And( simpleBuilder.Lt( "Age", 31 ), simpleBuilder.Eq( "Name", "Jack" ) );
-		//	// using operators overloaded in Builders (|, &, !)
-		//	var filter5 = simpleBuilder.Lt( "Age", 31 ) | simpleBuilder.Eq( "Name", "Jones" );
-
-
-		//	//var list = await col.Find( filter5 ).ToListAsync();
-
-		//	//foreach ( var doc in list )
-		//	//{
-		//	//	Console.WriteLine( doc );
-		//	//}
-
-
-
-		//	// 6.d) Using Class Types instead of BsonDocuments, where it is much easier to use expression trees
-		//	var personCol = db.GetCollection<Person>( "people" );
-		//	var builder2 = new FilterDefinitionBuilder<Person>();
-		//	var personBuilder = Builders<Person>.Filter;
-
-		//	var filter6 = personBuilder.Lt( x => x.Age, 31 ) | personBuilder.Eq( x => x.Name, "Jones" );
-
-
-		//	var personList = await personCol.Find( filter6 ).ToListAsync();
-
-		//	//foreach ( var doc in personList )
-		//	//{
-		//	//	Console.WriteLine( doc );
-		//	//}
-
-		//	// 6.e) Using Strongly Typed objects, filters are unnecessary, expression trees can be used in-line with filter info
-		//	personList = await personCol.Find( x => x.Age < 30 && x.Name != "Jones" ).ToListAsync();
-
-		//	foreach ( var doc in personList )
-		//	{
-		//		Console.WriteLine( doc );
-		//	}
-
-		
-		//}
-
-		//// 7- *** Sorts, Skips and limits *** //
-
-		// Doings Limits and skips without sorts is dangerous!
-		// You do NOT know the order where the documents are going to come out.
-
+		// Retrieves the Documents from a MongoDB collection
 		static async Task MainAsync( string[] args )
 		{
 			var client = new MongoClient();
 			var db = client.GetDatabase( "test" );
 			var col = db.GetCollection<BsonDocument>( "people" );
 
-			// Limit, puts a limit on to the amount of documents retrieved.
-			// Skip, jumps a number of documents
-			var list = await col.Find( new BsonDocument() ).Skip(1).Limit( 1 )
-				.ToListAsync();
+			//// 6.a) The filter is a BsonDocument
+			var filter1 = new BsonDocument( "Name", "Smith" );
+			// Find() is expecting a BsonDefinition as an argument
+			// Although filter is a BsonDocument, there are some implicit conversions between BsonDocuments and filterDefinitions
 
-			// Sort, by Age ascending
-			var list2 = await col.Find( new BsonDocument() ).Sort( "{Age : 1}" )
-				.ToListAsync();
-			// Sort, by Age ascending
-			var list3 = await col.Find( new BsonDocument() ).
-				Sort( new BsonDocument( "Age", 1 ) ).
-				ToListAsync();
-			// Sort, using the Builders helper (allows ascending and descending)
-			var list4 = await col.Find( new BsonDocument() ).
-				Sort( Builders<BsonDocument>.Sort.Ascending( "Age").Descending("Name") ).
-				ToListAsync();
-			
+			//// 6.b) The filter can be a more complex BsonDocument
+			var filter2 = new BsonDocument( "$and", new BsonArray
+				{
+					new BsonDocument("Age", new BsonDocument("$lt", 31)),
+					new BsonDocument("Name", "Smith")
+				} );
 
+			// 6.c) The filter can be used (optimal situation) with the filter builder 
+			var builder = new FilterDefinitionBuilder<BsonDocument>();
+			var simpleBuilder = Builders<BsonDocument>.Filter;
 
-
-
-			// Using, strongly typed classes (Person)
-			var colPerson = db.GetCollection<Person>( "people" );
+			var filter3 = simpleBuilder.Lt( "Age", 31 );
+			var filter4 = simpleBuilder.And( simpleBuilder.Lt( "Age", 31 ), simpleBuilder.Eq( "Name", "Jack" ) );
+			// using operators overloaded in Builders (|, &, !)
+			var filter5 = simpleBuilder.Lt( "Age", 31 ) | simpleBuilder.Eq( "Name", "Jones" );
 
 
-			var list5 = await colPerson.Find( new BsonDocument() ).
-				Sort( Builders<Person>.Sort.Ascending( x => x.Age ) ).
-				ToListAsync();
+			//var list = await col.Find( filter5 ).ToListAsync();
 
-			var list6 = await colPerson.Find( new BsonDocument() ).
-				SortBy( x => x.Age ).
-				ThenByDescending( x => x.Name ).
-				ToListAsync();
+			//foreach ( var doc in list )
+			//{
+			//	Console.WriteLine( doc );
+			//}
 
 
-			foreach ( var doc in list5 )
+
+			// 6.d) Using Class Types instead of BsonDocuments, where it is much easier to use expression trees
+			var personCol = db.GetCollection<Person>( "people" );
+			var builder2 = new FilterDefinitionBuilder<Person>();
+			var personBuilder = Builders<Person>.Filter;
+
+			var filter6 = personBuilder.Lt( x => x.Age, 31 ) | personBuilder.Eq( x => x.Name, "Jones" );
+
+
+			var personList = await personCol.Find( filter6 ).ToListAsync();
+
+			//foreach ( var doc in personList )
+			//{
+			//	Console.WriteLine( doc );
+			//}
+
+			// 6.e) Using Strongly Typed objects, filters are unnecessary, expression trees can be used in-line with filter info
+			personList = await personCol.Find( x => x.Age < 30 && x.Name != "Jones" ).ToListAsync();
+
+			foreach ( var doc in personList )
 			{
 				Console.WriteLine( doc );
 			}
 
 		}
+
+		//// 7- *** Sorts, Skips and limits *** //
+
+		//// Doings Limits and skips without sorts is dangerous!
+		//// You do NOT know the order where the documents are going to come out.
+
+		//static async Task MainAsync( string[] args )
+		//{
+		//	var client = new MongoClient();
+		//	var db = client.GetDatabase( "test" );
+		//	var col = db.GetCollection<BsonDocument>( "people" );
+
+		//	// Limit, puts a limit on to the amount of documents retrieved.
+		//	// Skip, jumps a number of documents
+		//	var list = await col.Find( new BsonDocument() ).Skip(1).Limit( 1 )
+		//		.ToListAsync();
+
+		//	// Sort, by Age ascending
+		//	var list2 = await col.Find( new BsonDocument() ).Sort( "{Age : 1}" )
+		//		.ToListAsync();
+		//	// Sort, by Age ascending
+		//	var list3 = await col.Find( new BsonDocument() ).
+		//		Sort( new BsonDocument( "Age", 1 ) ).
+		//		ToListAsync();
+		//	// Sort, using the Builders helper (allows ascending and descending)
+		//	var list4 = await col.Find( new BsonDocument() ).
+		//		Sort( Builders<BsonDocument>.Sort.Ascending( "Age").Descending("Name") ).
+		//		ToListAsync();
+			
+
+
+
+
+		//	// Using, strongly typed classes (Person)
+		//	var colPerson = db.GetCollection<Person>( "people" );
+
+
+		//	var list5 = await colPerson.Find( new BsonDocument() ).
+		//		Sort( Builders<Person>.Sort.Ascending( x => x.Age ) ).
+		//		ToListAsync();
+
+		//	var list6 = await colPerson.Find( new BsonDocument() ).
+		//			By( x => x.Age ).
+		//		ThenByDescending( x => x.Name ).
+		//		ToListAsync();
+
+
+		//	foreach ( var doc in list5 )
+		//	{
+		//		Console.WriteLine( doc );
+		//	}
+
+		//}
+
+		
+
+		//// 7- *** FInd with Projections *** //
+
+		// Do NOT fetch ALL the Data at once (there might be a lot to fectch)
+
+		//static async Task MainAsync( string[] args )
+		//{
+		//	var client = new MongoClient();
+		//	var db = client.GetDatabase( "test" );
+		//	var col = db.GetCollection<BsonDocument>( "people" );
+
+		//	// Fetches only the the Names, it excludes the id (By default it would be fetched)
+		//	var list = await col.Find( new BsonDocument() ).
+		//		Project( "{Name: 1, _id:0}" )
+		//		.ToListAsync();
+
+		//	// Equivalent to the upper one
+		//	//var list2 = await col.Find( new BsonDocument() ).
+		//	//	Project( new BsonDocument( "Name", 1 ).Add( "_id:", 0))
+		//	//	.ToListAsync();
+
+		//	// Equivalent, using Builders helper
+		//	var list3 = await col.Find( new BsonDocument() ).
+		//		Project( Builders<BsonDocument>.Projection.Include( "Name" ).Exclude( "_id" ) )
+		//		.ToListAsync();
+
+
+		//	// Using the Strong-typed class Person
+		//	var colPerson = db.GetCollection<Person>( "people" );
+
+		//	// Even though working with people, I am projecting into a BsonDocument
+		//	var list4 = await colPerson.Find( new BsonDocument() ).
+		//		Project( Builders<Person>.Projection.Include( "Name" ).Exclude( "_id" ) )
+		//		.ToListAsync();
+
+		//	// Same again, using types, expression trees can be used
+		//	var list5 = await colPerson.Find( new BsonDocument() ).
+		//		Project( Builders<Person>.Projection.Include( x => x.Name ).Exclude( x => x.Id ) )
+		//		.ToListAsync();
+
+		//	// YOu are going to want to project into a person, 
+		//	// Person is a strongly-typed expression, and Id is not wanted (just x.Name) so the Projection is to a string 
+		//	var list6 = await colPerson.Find( new BsonDocument() ).
+		//	Project( x => x.Name )
+		//	.ToListAsync();
+
+		//	// If I want sth more complicated, an anonymous type can be used to add some other fields
+		//	// We are telling to the server (include Name, Age, Exclude _id)
+		//	// The server does NOT support these kind of projection in a FIND ( x => new { x.Name, calcAge = x.Age + 20 } )
+		//	// The server does NOT allow either these operations in FIND ( x.Age + 20 )
+		//	// So we are going to run these on CLIENT SIDE
+		//	var list7 = await colPerson.Find( new BsonDocument() ).
+		//	Project( x => new { x.Name, calcAge = x.Age + 20 } )
+		//	.ToListAsync();
+
+		//	foreach ( var doc in list7 )
+		//	{
+		//		Console.WriteLine( doc );
+		//	}
+		//}
 
 
 	}
