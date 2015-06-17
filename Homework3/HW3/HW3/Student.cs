@@ -8,7 +8,7 @@ namespace HW3
 {
 	public class Student
 	{
-		public double _id { get; set; }			// double
+		public double _id { get; set; }				// double
 		public string name { get; set; }			// string
 
 		public List<Scores> scores { get; set; }	// BsonArray

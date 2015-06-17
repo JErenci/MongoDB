@@ -59,7 +59,7 @@ namespace HW3
 
 			List<Student> studentClass = new List<Student>();
 
-			var count = 0;
+			//var count = 0;
 			using ( var cursor = await colBson.FindAsync( filter ) )
 			{
 				while ( await cursor.MoveNextAsync() )
@@ -150,7 +150,7 @@ namespace HW3
 		public string type { get; set; }
 		public double score { get; set; }
 
-		public string ToString()
+		public override string ToString()
 		{
 			string gradeString = String.Empty;
 

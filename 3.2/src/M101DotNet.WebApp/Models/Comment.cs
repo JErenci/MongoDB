@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace M101DotNet.WebApp.Models
 {
@@ -27,6 +29,14 @@ namespace M101DotNet.WebApp.Models
 		{
 			get;
 			set;
+		}
+
+		[BsonConstructor]
+		public Comment( String author, string content, DateTime createAtUtc )
+		{
+			Author = author;
+			Content = content;
+			CreatedAtUtc = createAtUtc;
 		}
     }
 }
